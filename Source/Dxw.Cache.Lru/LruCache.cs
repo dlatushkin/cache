@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Dxw.Core.Times;
-
-namespace Dxw.Cache.Lru
+﻿namespace Dxw.Cache.Lru
 {
+    using System;
+    using System.Collections.Generic;
+    using Dxw.Core.Times;
+
     /// <summary>
     /// LRU implementation of Thread-safe cache with limited number of items where elements are automatically removed if not accessed.
     /// </summary>
@@ -12,41 +12,44 @@ namespace Dxw.Cache.Lru
         public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(30);
         public static readonly int DefaultMaxCapacity = 2;
 
-        private readonly Dictionary<TKey, Node<TKey, TItem>> _entries = new Dictionary<TKey, Node<TKey, TItem>>();
-        private readonly object _entriesLock = new object();
-        private int _count;
+        private readonly Dictionary<TKey, Node<TKey, TItem>> entries = new Dictionary<TKey, Node<TKey, TItem>>();
+        private readonly object lockObj = new object();
 
-        private readonly int _maxCapacity;
-        private readonly TimeSpan _defaultDuration;
-        private readonly ITimeSource _timeSource;
+        private readonly int maxCapacity;
+        private readonly TimeSpan defaultDuration;
+        private readonly ITimeSource timeSource;
 
-        private Node<TKey, TItem> _head;
-        private Node<TKey, TItem> _tail;
+        private int count;
+
+        private Node<TKey, TItem> head;
+        private Node<TKey, TItem> tail;
 
         public LruCache(
             ITimeSource timeSource,
             TimeSpan? defaultDuration = null,
             int? maxCapacity = null)
         {
-            _timeSource = timeSource;
-            _defaultDuration = defaultDuration ?? DefaultDuration;
-            _maxCapacity = maxCapacity ?? DefaultMaxCapacity;
+            this.timeSource = timeSource;
+            this.defaultDuration = defaultDuration ?? DefaultDuration;
+            this.maxCapacity = maxCapacity ?? DefaultMaxCapacity;
         }
 
-        public void Add(TKey key, TItem item) => TryAdd(key, item);
+        private bool Full => this.count == this.maxCapacity;
 
-        public void Add(TKey key, TItem item, TimeSpan duration) => TryAdd(key, item, duration);
+        public void Add(TKey key, TItem item) => this.TryAdd(key, item);
+
+        public void Add(TKey key, TItem item, TimeSpan duration) => this.TryAdd(key, item, duration);
 
         public bool TryGet(TKey key, out TItem item)
         {
             item = default(TItem);
 
-            if (!_entries.TryGetValue(key, out var node))
+            if (!this.entries.TryGetValue(key, out var node))
             {
                 return false;
             }
 
-            MoveToHead(node);
+            this.MoveToHead(node);
 
             item = node.Value;
 
@@ -58,20 +61,39 @@ namespace Dxw.Cache.Lru
             throw new NotImplementedException();
         }
 
+        public void Purge()
+        {
+            if (this.count == 0)
+            {
+                return;
+            }
+
+            lock (this.lockObj)
+            {
+                var current = this.tail;
+                var now = this.timeSource.GetNow();
+                while (current?.Expired(now) == true)
+                {
+                    this.Remove(current);
+                    current = current.Prev;
+                }
+            }
+        }
+
         private void TryAdd(TKey key, TItem value, TimeSpan? duration = null)
         {
             Node<TKey, TItem> node;
 
-            if (!_entries.TryGetValue(key, out node))
+            if (!this.entries.TryGetValue(key, out node))
             {
-                lock (_entriesLock)
+                lock (this.lockObj)
                 {
-                    if (!_entries.TryGetValue(key, out node))
+                    if (!this.entries.TryGetValue(key, out node))
                     {
-                        if (Full)
+                        if (this.Full)
                         {
-                            node = _tail;
-                            _entries.Remove(_tail.Key);
+                            node = this.tail;
+                            this.entries.Remove(this.tail.Key);
 
                             node.Key = key;
                             node.Value = value;
@@ -79,16 +101,16 @@ namespace Dxw.Cache.Lru
                         }
                         else
                         {
-                            _count++;
+                            this.count++;
                             node = new Node<TKey, TItem>
                             {
                                 Key = key,
                                 Value = value,
                                 Duration = duration
                             };
-                        };
+                        }
 
-                        _entries.Add(key, node);
+                        this.entries.Add(key, node);
                     }
                 }
             }
@@ -100,61 +122,41 @@ namespace Dxw.Cache.Lru
                 }
             }
 
-            MoveToHead(node);
+            this.MoveToHead(node);
 
-            if (_tail == null)
+            if (this.tail == null)
             {
-                _tail = _head;
+                this.tail = this.head;
             }
         }
 
         private void MoveToHead(Node<TKey, TItem> node)
         {
-            node.Touch(_timeSource.GetNow(), _defaultDuration);
+            node.Touch(this.timeSource.GetNow(), this.defaultDuration);
 
-            if (node == _head)
+            if (node == this.head)
             {
                 return;
             }
 
-            lock (_entriesLock)
+            lock (this.lockObj)
             {
-                RemoveFromPosition(node);
-                AddToHead(node);
-            }
-        }
-
-        public void Purge()
-        {
-            if (_count == 0)
-            {
-                return;
-            }
-
-            lock (_entriesLock)
-            {
-                var current = _tail;
-                var now = _timeSource.GetNow();
-                while (current?.Expired(now) == true)
-                {
-                    System.Diagnostics.Trace.WriteLine("purged");
-                    Remove(current);
-                    current = current.Prev;
-                }
+                this.RemoveFromPosition(node);
+                this.AddToHead(node);
             }
         }
 
         private void AddToHead(Node<TKey, TItem> node)
         {
             node.Prev = null;
-            node.Next = _head;
+            node.Next = this.head;
 
-            if (_head != null)
+            if (this.head != null)
             {
-                _head.Prev = node;
+                this.head.Prev = node;
             }
 
-            _head = node;
+            this.head = node;
         }
 
         private void RemoveFromPosition(Node<TKey, TItem> node)
@@ -172,24 +174,22 @@ namespace Dxw.Cache.Lru
                 prev.Next = node.Next;
             }
 
-            if (node == _head)
+            if (node == this.head)
             {
-                _head = next;
+                this.head = next;
             }
 
-            if (node == _tail)
+            if (node == this.tail)
             {
-                _tail = prev;
+                this.tail = prev;
             }
         }
 
         private void Remove(Node<TKey, TItem> node)
         {
-            RemoveFromPosition(node);
-            _entries.Remove(node.Key);
-            _count--;
+            this.RemoveFromPosition(node);
+            this.entries.Remove(node.Key);
+            this.count--;
         }
-
-        private bool Full => _count == _maxCapacity;
     }
 }

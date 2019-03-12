@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Dxw.Core.Timers
+﻿namespace Dxw.Core.Timers
 {
     public interface IElapsedListener
     {

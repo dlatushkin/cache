@@ -1,10 +1,10 @@
-﻿using System;
-using System.Timers;
-using Dxw.Core.Timers;
-using Dxw.Core.Times;
-
-namespace Dxw.Cache.Lru
+﻿namespace Dxw.Cache.Lru
 {
+    using System;
+    using System.Timers;
+    using Dxw.Core.Timers;
+    using Dxw.Core.Times;
+
     public class ActiveLruCash<TKey, TItem> : LruCache<TKey, TItem>, IElapsedListener
     {
         private static readonly TimeSpan DefaultPurgeInterval = TimeSpan.FromSeconds(5);
@@ -18,14 +18,14 @@ namespace Dxw.Cache.Lru
             int? maxCapacity = null)
             : base(timeSource, defaultDuration, maxCapacity)
         {
-            timer = new Timer
+            this.timer = new Timer
             {
                 Interval = (purgeInterval ?? DefaultPurgeInterval).TotalMilliseconds
             };
-            var weakEventManager = WeakEventManager.Register(timer, this);
-            timer.Enabled = true;
+            var weakEventManager = WeakEventManager.Register(this.timer, this);
+            this.timer.Enabled = true;
         }
 
-        public void Elapsed() => Purge();
+        public void Elapsed() => this.Purge();
     }
 }

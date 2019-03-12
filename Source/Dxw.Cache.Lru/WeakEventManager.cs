@@ -1,33 +1,33 @@
-﻿using Dxw.Core.Timers;
-using System;
-using System.Timers;
-
-namespace Dxw.Cache.Lru
+﻿namespace Dxw.Cache.Lru
 {
+    using System;
+    using System.Timers;
+    using Dxw.Core.Timers;
+
     public class WeakEventManager
     {
-        private readonly Timer _timer;
-        private readonly WeakReference<IElapsedListener> _elapsedReference;
+        private readonly Timer timer;
+        private readonly WeakReference<IElapsedListener> elapsedReference;
+
+        private WeakEventManager(Timer timer, IElapsedListener elapsedListener)
+        {
+            this.timer = timer;
+            this.elapsedReference = new WeakReference<IElapsedListener>(elapsedListener);
+            this.timer.Elapsed += this.OnElapsed;
+        }
 
         public static WeakEventManager Register(Timer timer, IElapsedListener elapsedListener) =>
             new WeakEventManager(timer, elapsedListener);
 
-        private WeakEventManager(Timer timer, IElapsedListener elapsedListener)
-        {
-            _timer = timer;
-            _elapsedReference = new WeakReference<IElapsedListener>(elapsedListener);
-            _timer.Elapsed += OnElapsed;
-        }
-
         private void OnElapsed(object sender, ElapsedEventArgs e)
         {
-            if (_elapsedReference.TryGetTarget(out var listener))
+            if (this.elapsedReference.TryGetTarget(out var listener))
             {
                 listener.Elapsed();
             }
             else
             {
-                _timer.Elapsed -= OnElapsed;
+                this.timer.Elapsed -= this.OnElapsed;
             }
         }
     }

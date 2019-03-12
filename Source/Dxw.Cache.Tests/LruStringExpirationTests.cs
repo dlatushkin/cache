@@ -1,19 +1,19 @@
-using Dxw.Cache.Lru;
-using Shouldly;
-using System;
-using Xunit;
-
 namespace Dxw.Cache.Tests
 {
+    using System;
+    using Dxw.Cache.Lru;
+    using Shouldly;
+    using Xunit;
+
     public class LruStringExpirationTests : BaseCacheTests<string, string>
     {
         [Fact]
         public void DefaultDurationAddItemDefaultDuration_ItemExpires()
         {
             // Arrange
-            IPurgeableCash<string, string> cache = new LruCache<string, string>(_timeSourceMock.Object);
+            IPurgeableCash<string, string> cache = new LruCache<string, string>(this.TimeSourceMock.Object);
             var now = default(DateTime);
-            _timeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
+            this.TimeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -31,9 +31,9 @@ namespace Dxw.Cache.Tests
             // Arrange
             var customDuration = TimeSpan.FromSeconds(60);
             IPurgeableCash<string, string> cache =
-                new LruCache<string, string>(_timeSourceMock.Object, customDuration);
+                new LruCache<string, string>(this.TimeSourceMock.Object, customDuration);
             var now = default(DateTime);
-            _timeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
+            this.TimeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -56,9 +56,9 @@ namespace Dxw.Cache.Tests
             // Arrange
             var customDuration = TimeSpan.FromSeconds(60);
             IPurgeableCash<string, string> cache =
-                new LruCache<string, string>(_timeSourceMock.Object);
+                new LruCache<string, string>(this.TimeSourceMock.Object);
             var now = default(DateTime);
-            _timeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
+            this.TimeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
 
             // Act
             cache.Add("KeyA", "ValueA");

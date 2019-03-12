@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Dxw.Core.Times
+﻿namespace Dxw.Core.Times
 {
+    using System;
+
     public interface ITimeSource
     {
         DateTime GetNow();

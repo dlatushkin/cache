@@ -1,10 +1,10 @@
-﻿using System;
-
-namespace Dxw.Cache.Lru
+﻿namespace Dxw.Cache.Lru
 {
+    using System;
+
     public class Node<TKey, TItem>
     {
-        private DateTime _expiresAt;
+        private DateTime expiresAt;
 
         public Node<TKey, TItem> Next { get; set; }
 
@@ -16,11 +16,11 @@ namespace Dxw.Cache.Lru
 
         public TimeSpan? Duration { get; set; }
 
-        public bool Expired(DateTime now) => _expiresAt <= now;
+        public bool Expired(DateTime now) => this.expiresAt <= now;
 
         public void Touch(DateTime now, TimeSpan defaultDuration)
         {
-            _expiresAt = now.Add(Duration ?? defaultDuration);
+            this.expiresAt = now.Add(this.Duration ?? defaultDuration);
         }
     }
 }

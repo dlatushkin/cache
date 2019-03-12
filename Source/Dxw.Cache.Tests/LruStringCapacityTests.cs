@@ -1,16 +1,16 @@
-using Dxw.Cache.Lru;
-using Shouldly;
-using Xunit;
-
 namespace Dxw.Cache.Tests
 {
+    using Dxw.Cache.Lru;
+    using Shouldly;
+    using Xunit;
+
     public class LruStringCapacityTests : BaseCacheTests<string, string>
     {
         [Fact]
         public void DefaultCapacityAddMoreItems_1stItemPushedOut()
         {
             // Arrange
-            IPurgeableCash<string, string> cache = new LruCache<string, string>(_timeSourceMock.Object);
+            IPurgeableCash<string, string> cache = new LruCache<string, string>(this.TimeSourceMock.Object);
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -35,7 +35,7 @@ namespace Dxw.Cache.Tests
         {
             // Arrange
             IPurgeableCash<string, string> cache =
-                new LruCache<string, string>(_timeSourceMock.Object, maxCapacity: 1);
+                new LruCache<string, string>(this.TimeSourceMock.Object, maxCapacity: 1);
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -59,7 +59,7 @@ namespace Dxw.Cache.Tests
         {
             // Arrange
             IPurgeableCash<string, string> cache =
-                new LruCache<string, string>(_timeSourceMock.Object);
+                new LruCache<string, string>(this.TimeSourceMock.Object);
 
             // Act
             cache.Add("KeyA", "ValueA");

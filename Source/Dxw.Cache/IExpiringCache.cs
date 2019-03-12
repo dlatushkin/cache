@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Dxw.Cache
+﻿namespace Dxw.Cache
 {
+    using System;
+
     /// <summary>
     /// Thread-safe cache with limited number of items where elements are automatically removed if not accessed.
     /// </summary>

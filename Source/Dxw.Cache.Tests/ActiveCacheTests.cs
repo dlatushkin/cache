@@ -1,15 +1,12 @@
-﻿using Dxw.Cache.Lru;
-using Dxw.Core.Times;
-using Shouldly;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-
-namespace Dxw.Cache.Tests
+﻿namespace Dxw.Cache.Tests
 {
+    using System;
+    using System.Threading.Tasks;
+    using Dxw.Cache.Lru;
+    using Dxw.Core.Times;
+    using Shouldly;
+    using Xunit;
+
     public class ActiveCacheTests
     {
         [Fact]

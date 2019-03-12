@@ -1,15 +1,15 @@
-﻿using Dxw.Core.Times;
-using Moq;
-
-namespace Dxw.Cache.Tests
+﻿namespace Dxw.Cache.Tests
 {
+    using Dxw.Core.Times;
+    using Moq;
+
     public abstract class BaseCacheTests<TKey, TITem>
     {
-        protected readonly Mock<ITimeSource> _timeSourceMock;
-
         public BaseCacheTests()
         {
-            _timeSourceMock = new Mock<ITimeSource>();
+            this.TimeSourceMock = new Mock<ITimeSource>();
         }
+
+        protected Mock<ITimeSource> TimeSourceMock { get; }
     }
 }

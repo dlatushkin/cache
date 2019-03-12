@@ -3,5 +3,7 @@
     /// <summary>
     /// Interface to have one generic reference to cash instance.
     /// </summary>
-    public interface IPurgeableCash<TKey, TItem> : IExpiringCache<TKey, TItem>, IPurgeable {}
+    public interface IPurgeableCash<TKey, TItem> : IExpiringCache<TKey, TItem>, IPurgeable
+    {
+    }
 }
