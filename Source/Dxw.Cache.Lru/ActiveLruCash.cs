@@ -5,6 +5,9 @@
     using Dxw.Core.Timers;
     using Dxw.Core.Times;
 
+    /// <summary>
+    /// Cache with automatic purging by timer
+    /// </summary>
     public class ActiveLruCash<TKey, TItem> : LruCache<TKey, TItem>, IElapsedListener
     {
         private static readonly TimeSpan DefaultPurgeInterval = TimeSpan.FromSeconds(5);

@@ -12,6 +12,9 @@
         public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(30);
         public static readonly int DefaultMaxCapacity = 2;
 
+        /// <summary>
+        /// Lookup dictionary for fast search by key
+        /// </summary>
         private readonly Dictionary<TKey, Node<TKey, TItem>> entries = new Dictionary<TKey, Node<TKey, TItem>>();
         private readonly object lockObj = new object();
 
@@ -21,6 +24,9 @@
 
         private int count;
 
+        /// <summary>
+        /// Linked list pointers (to order nodes by relevance)
+        /// </summary>
         private Node<TKey, TItem> head;
         private Node<TKey, TItem> tail;
 
@@ -36,10 +42,19 @@
 
         private bool Full => this.count == this.maxCapacity;
 
+        /// <summary>
+        /// Adds (or updates) an element with default duration
+        /// </summary>
         public void Add(TKey key, TItem item) => this.TryAdd(key, item);
 
+        /// <summary>
+        /// Adds (or updates) an element with a specific duration overriding the default duration.
+        /// </summary>
         public void Add(TKey key, TItem item, TimeSpan duration) => this.TryAdd(key, item, duration);
 
+        /// <summary>
+        /// Gets an element with a specific key and resets its last-accessed property
+        /// </summary>
         public bool TryGet(TKey key, out TItem item)
         {
             item = default(TItem);
@@ -56,11 +71,26 @@
             return true;
         }
 
+        /// <summary>
+        /// Removes an element with a specific key
+        /// </summary>
         public bool Remove(TKey key)
         {
-            throw new NotImplementedException();
+            if (!this.entries.TryGetValue(key, out var node))
+            {
+                return false;
+            }
+
+            this.Remove(node);
+            return true;
         }
 
+        /// <summary>
+        /// Purges expired items.
+        /// Linked list is ordered by expiration time by moving the most recently touched nodes to head
+        /// hence the performance under lock is maximal.
+        /// May be used in manualy or by timer event.
+        /// </summary>
         public void Purge()
         {
             if (this.count == 0)
@@ -80,11 +110,15 @@
             }
         }
 
+        /// <summary>
+        /// Adds new element to cache.
+        /// If cache is full the least relevant item is removed.
+        /// If item with the same key exists it is overwritten.
+        /// Element with given key is moved to the head.
+        /// </summary>
         private void TryAdd(TKey key, TItem value, TimeSpan? duration = null)
         {
-            Node<TKey, TItem> node;
-
-            if (!this.entries.TryGetValue(key, out node))
+            if (!this.entries.TryGetValue(key, out var node))
             {
                 lock (this.lockObj)
                 {
@@ -130,6 +164,9 @@
             }
         }
 
+        /// <summary>
+        /// Node is cut from its current position in the list and moved to the head.
+        /// </summary>
         private void MoveToHead(Node<TKey, TItem> node)
         {
             node.Touch(this.timeSource.GetNow(), this.defaultDuration);
@@ -146,6 +183,9 @@
             }
         }
 
+        /// <summary>
+        /// Node is inserted to the very beginning (head) of the list
+        /// </summary>
         private void AddToHead(Node<TKey, TItem> node)
         {
             node.Prev = null;
@@ -159,6 +199,9 @@
             this.head = node;
         }
 
+        /// <summary>
+        /// Cuts given node from its current position and sets sibling pointers accordingly
+        /// </summary>
         private void RemoveFromPosition(Node<TKey, TItem> node)
         {
             var next = node.Next;
@@ -185,6 +228,9 @@
             }
         }
 
+        /// <summary>
+        /// Removes node from both linked list and lookup dicionary.
+        /// </summary>
         private void Remove(Node<TKey, TItem> node)
         {
             this.RemoveFromPosition(node);

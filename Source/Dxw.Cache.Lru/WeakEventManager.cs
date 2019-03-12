@@ -4,6 +4,10 @@
     using System.Timers;
     using Dxw.Core.Timers;
 
+    /// <summary>
+    /// WeakReference implementation to weakly bind Timer to cache handler.
+    /// This allows to avoid IDispose implementation in the <see cref="ActiveLruCash"/>.
+    /// </summary>
     public class WeakEventManager
     {
         private readonly Timer timer;
@@ -22,11 +26,11 @@
         private void OnElapsed(object sender, ElapsedEventArgs e)
         {
             if (this.elapsedReference.TryGetTarget(out var listener))
-            {
+            { // if target object is still alive call its event handler
                 listener.Elapsed();
             }
             else
-            {
+            { // if not unsubscribe this wrapper
                 this.timer.Elapsed -= this.OnElapsed;
             }
         }
