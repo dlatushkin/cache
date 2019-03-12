@@ -11,14 +11,14 @@ namespace Dxw.Cache.Tests
         public void DefaultDurationAddItemDefaultDuration_ItemExpires()
         {
             // Arrange
-            IPurgeableCash<string, string> cache = new LruExpiringCache<string, string>(_timeSourceMock.Object);
+            IPurgeableCash<string, string> cache = new LruCache<string, string>(_timeSourceMock.Object);
             var now = default(DateTime);
             _timeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
 
             // Act
             cache.Add("KeyA", "ValueA");
             cache.Purge();
-            now = now.Add(LruExpiringCache<string, string>.DefaultDuration);
+            now = now.Add(LruCache<string, string>.DefaultDuration);
             cache.Purge();
 
             // Assert
@@ -31,7 +31,7 @@ namespace Dxw.Cache.Tests
             // Arrange
             var customDuration = TimeSpan.FromSeconds(60);
             IPurgeableCash<string, string> cache =
-                new LruExpiringCache<string, string>(_timeSourceMock.Object, customDuration);
+                new LruCache<string, string>(_timeSourceMock.Object, customDuration);
             var now = default(DateTime);
             _timeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
 
@@ -42,7 +42,7 @@ namespace Dxw.Cache.Tests
             var val = default(string);
             cache.Purge();
             cache.TryGet("KeyA", out val).ShouldBeTrue();
-            now = now.Add(LruExpiringCache<string, string>.DefaultDuration);
+            now = now.Add(LruCache<string, string>.DefaultDuration);
             cache.Purge();
             cache.TryGet("KeyA", out val).ShouldBeTrue();
             now = now.Add(customDuration);
@@ -56,7 +56,7 @@ namespace Dxw.Cache.Tests
             // Arrange
             var customDuration = TimeSpan.FromSeconds(60);
             IPurgeableCash<string, string> cache =
-                new LruExpiringCache<string, string>(_timeSourceMock.Object);
+                new LruCache<string, string>(_timeSourceMock.Object);
             var now = default(DateTime);
             _timeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
 
@@ -74,7 +74,7 @@ namespace Dxw.Cache.Tests
                 () => cache.TryGet("KeyB", out valB).ShouldBeTrue(),
                 () => valB.ShouldBe("ValueB"));
 
-            now = now.Add(LruExpiringCache<string, string>.DefaultDuration);
+            now = now.Add(LruCache<string, string>.DefaultDuration);
             cache.Purge();
             this.ShouldSatisfyAllConditions(
                 () => cache.TryGet("KeyA", out valA).ShouldBeFalse(),

@@ -7,7 +7,7 @@ namespace Dxw.Cache.Lru
     /// <summary>
     /// LRU implementation of Thread-safe cache with limited number of items where elements are automatically removed if not accessed.
     /// </summary>
-    public class LruExpiringCache<TKey, TItem> : IPurgeableCash<TKey, TItem>
+    public class LruCache<TKey, TItem> : IPurgeableCash<TKey, TItem>
     {
         public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(30);
         public static readonly int DefaultMaxCapacity = 2;
@@ -23,7 +23,7 @@ namespace Dxw.Cache.Lru
         private Node<TKey, TItem> _head;
         private Node<TKey, TItem> _tail;
 
-        public LruExpiringCache(
+        public LruCache(
             ITimeSource timeSource,
             TimeSpan? defaultDuration = null,
             int? maxCapacity = null)
@@ -137,6 +137,7 @@ namespace Dxw.Cache.Lru
                 var now = _timeSource.GetNow();
                 while (current?.Expired(now) == true)
                 {
+                    System.Diagnostics.Trace.WriteLine("purged");
                     Remove(current);
                     current = current.Prev;
                 }

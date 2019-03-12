@@ -11,7 +11,7 @@ namespace Dxw.Cache.Tests
         public void AddItem_GetSameItem()
         {
             // Arrange
-            IExpiringCache<string, string> cache = new LruExpiringCache<string, string>(_timeSourceMock.Object);
+            IExpiringCache<string, string> cache = new LruCache<string, string>(_timeSourceMock.Object);
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -31,7 +31,7 @@ namespace Dxw.Cache.Tests
         public void RewriteItem_GetRewritten()
         {
             // Arrange
-            IExpiringCache<string, string> cache = new LruExpiringCache<string, string>(_timeSourceMock.Object);
+            IExpiringCache<string, string> cache = new LruCache<string, string>(_timeSourceMock.Object);
 
             // Act
             cache.Add("KeyA", "ValueA");
