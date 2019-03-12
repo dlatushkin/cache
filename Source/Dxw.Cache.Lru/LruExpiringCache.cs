@@ -7,8 +7,11 @@ namespace Dxw.Cache.Lru
     /// <summary>
     /// LRU implementation of Thread-safe cache with limited number of items where elements are automatically removed if not accessed.
     /// </summary>
-    public class LruExpiringCache<TKey, TItem>: IExpiringCache<TKey, TItem>
+    public class LruExpiringCache<TKey, TItem> : IPurgeableCash<TKey, TItem>
     {
+        public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(30);
+        public static readonly int DefaultMaxCapacity = 2;
+
         private readonly Dictionary<TKey, Node<TKey, TItem>> _entries = new Dictionary<TKey, Node<TKey, TItem>>();
         private readonly object _entriesLock = new object();
         private int _count;
@@ -20,11 +23,14 @@ namespace Dxw.Cache.Lru
         private Node<TKey, TItem> _head;
         private Node<TKey, TItem> _tail;
 
-        public LruExpiringCache(TimeSpan defaultDuration, int maxCapacity, ITimeSource timeSource)
+        public LruExpiringCache(
+            ITimeSource timeSource,
+            TimeSpan? defaultDuration = null,
+            int? maxCapacity = null)
         {
-            _defaultDuration = defaultDuration;
-            _maxCapacity = maxCapacity;
             _timeSource = timeSource;
+            _defaultDuration = defaultDuration ?? DefaultDuration;
+            _maxCapacity = maxCapacity ?? DefaultMaxCapacity;
         }
 
         public void Add(TKey key, TItem item) => TryAdd(key, item);
@@ -69,6 +75,7 @@ namespace Dxw.Cache.Lru
 
                             node.Key = key;
                             node.Value = value;
+                            node.Duration = duration;
                         }
                         else
                         {
@@ -76,7 +83,8 @@ namespace Dxw.Cache.Lru
                             node = new Node<TKey, TItem>
                             {
                                 Key = key,
-                                Value = value
+                                Value = value,
+                                Duration = duration
                             };
                         };
 
@@ -111,12 +119,12 @@ namespace Dxw.Cache.Lru
 
             lock (_entriesLock)
             {
-                RemoveFromLL(node);
+                RemoveFromPosition(node);
                 AddToHead(node);
             }
         }
 
-        private void Purge()
+        public void Purge()
         {
             if (_count == 0)
             {
@@ -148,7 +156,7 @@ namespace Dxw.Cache.Lru
             _head = node;
         }
 
-        private void RemoveFromLL(Node<TKey, TItem> node)
+        private void RemoveFromPosition(Node<TKey, TItem> node)
         {
             var next = node.Next;
             var prev = node.Prev;
@@ -176,7 +184,7 @@ namespace Dxw.Cache.Lru
 
         private void Remove(Node<TKey, TItem> node)
         {
-            RemoveFromLL(node);
+            RemoveFromPosition(node);
             _entries.Remove(node.Key);
             _count--;
         }
