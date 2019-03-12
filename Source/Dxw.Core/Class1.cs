@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dxw.Cache
+namespace Dxw.Core
 {
     public class Class1
     {
