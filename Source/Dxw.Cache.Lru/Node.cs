@@ -5,7 +5,7 @@
     /// <summary>
     /// Represents node of linked list to order items by relevance (by time of last touch)
     /// </summary>
-    public class Node<TKey, TItem>
+    internal class Node<TKey, TItem>
     {
         private DateTime expiresAt;
 

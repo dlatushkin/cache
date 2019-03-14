@@ -6,6 +6,8 @@
 
     public abstract class BaseCacheTests<TKey, TITem>
     {
+        protected static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(30);
+
         protected Mock<ITimeSource> CreateTimeSourceMock() => new Mock<ITimeSource>();
 
         protected(Mock<ITimeSource> TimeMock, ICleanableCache<TKey, TITem> Cache) CreateICleanableCache(

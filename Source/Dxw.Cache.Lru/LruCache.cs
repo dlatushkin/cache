@@ -9,9 +9,6 @@
     /// </summary>
     public class LruCache<TKey, TItem> : ICleanableCache<TKey, TItem>
     {
-        public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(30);
-        public static readonly int DefaultMaxCapacity = 2;
-
         /// <summary>
         /// Lookup dictionary for fast search by key
         /// </summary>
@@ -20,26 +17,18 @@
 
         private readonly object lockObj = new object();
 
-        private readonly int maxCapacity;
-        private readonly TimeSpan defaultDuration;
-        private readonly ITimeSource timeSource;
-
         /// <summary>
         /// Linked list pointers (to order nodes by relevance)
         /// </summary>
-        private LinkedList<Node<TKey, TItem>> usedList = new LinkedList<Node<TKey, TItem>>();
+        private LruList<TKey, TItem> usedList;
 
         public LruCache(
             ITimeSource timeSource,
             TimeSpan? defaultDuration = null,
             int? maxCapacity = null)
         {
-            this.timeSource = timeSource;
-            this.defaultDuration = defaultDuration ?? DefaultDuration;
-            this.maxCapacity = maxCapacity ?? DefaultMaxCapacity;
+            this.usedList = new LruList<TKey, TItem>(timeSource, defaultDuration, maxCapacity);
         }
-
-        private bool Full => this.usedList.Count == this.maxCapacity;
 
         /// <summary>
         /// Adds (or updates) an element with default duration
@@ -63,7 +52,7 @@
                 return false;
             }
 
-            this.MoveToHead(node);
+            this.usedList.MoveToHead(node);
 
             item = node.Value.Value;
 
@@ -80,7 +69,8 @@
                 return false;
             }
 
-            this.Remove(node);
+            this.usedList.Remove(node);
+            this.entries.Remove(node.Value.Key);
             return true;
         }
 
@@ -92,20 +82,9 @@
         /// </summary>
         public void Purge()
         {
-            if (this.usedList.First == null)
+            foreach (var key in this.usedList.RemoveExpired())
             {
-                return;
-            }
-
-            lock (this.lockObj)
-            {
-                var current = this.usedList.Last;
-                var now = this.timeSource.GetNow();
-                while (current?.Value.Expired(now) == true)
-                {
-                    this.Remove(current);
-                    current = current.Previous;
-                }
+                this.entries.Remove(key);
             }
         }
 
@@ -119,23 +98,10 @@
         {
             if (!this.entries.TryGetValue(key, out var node))
             {
-                if (this.Full)
+                node = this.usedList.AddOrUpdate(key, value, duration, out var removedInfo);
+                if (removedInfo.removed)
                 {
-                    node = this.usedList.Last;
-                    this.entries.Remove(node.Value.Key);
-
-                    node.Value.Key = key;
-                    node.Value.Value = value;
-                    node.Value.Duration = duration;
-                }
-                else
-                {
-                    node = this.usedList.AddFirst(new Node<TKey, TItem>
-                    {
-                        Key = key,
-                        Value = value,
-                        Duration = duration
-                    });
+                    this.entries.Remove(removedInfo.key);
                 }
 
                 this.entries.Add(key, node);
@@ -146,32 +112,7 @@
                 node.Value.Duration = duration;
             }
 
-            this.MoveToHead(node);
-        }
-
-        /// <summary>
-        /// Node is cut from its current position in the list and moved to the head.
-        /// </summary>
-        private void MoveToHead(LinkedListNode<Node<TKey, TItem>> node)
-        {
-            node.Value.Touch(this.timeSource.GetNow(), this.defaultDuration);
-
-            if (node == this.usedList.First)
-            {
-                return;
-            }
-
-            this.usedList.Remove(node);
-            this.usedList.AddFirst(node);
-        }
-
-        /// <summary>
-        /// Removes node from both linked list and lookup dicionary.
-        /// </summary>
-        private void Remove(LinkedListNode<Node<TKey, TItem>> node)
-        {
-            this.usedList.Remove(node);
-            this.entries.Remove(node.Value.Key);
+            this.usedList.MoveToHead(node);
         }
     }
 }

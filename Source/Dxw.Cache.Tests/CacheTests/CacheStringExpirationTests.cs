@@ -1,7 +1,6 @@
 namespace Dxw.Cache.Tests.CacheTests
 {
     using System;
-    using Dxw.Cache.Lru;
     using Dxw.Cache.Tests.BaseTests;
     using Shouldly;
     using Xunit;
@@ -19,7 +18,7 @@ namespace Dxw.Cache.Tests.CacheTests
             // Act
             cache.Add("KeyA", "ValueA");
             cache.Purge();
-            now = now.Add(LruCache<string, string>.DefaultDuration);
+            now = now.Add(DefaultDuration);
             cache.Purge();
 
             // Assert
@@ -42,7 +41,7 @@ namespace Dxw.Cache.Tests.CacheTests
             var val = default(string);
             cache.Purge();
             cache.TryGet("KeyA", out val).ShouldBeTrue();
-            now = now.Add(LruCache<string, string>.DefaultDuration);
+            now = now.Add(DefaultDuration);
             cache.Purge();
             cache.TryGet("KeyA", out val).ShouldBeTrue();
             now = now.Add(customDuration);
@@ -73,7 +72,7 @@ namespace Dxw.Cache.Tests.CacheTests
                 () => cache.TryGet("KeyB", out valB).ShouldBeTrue(),
                 () => valB.ShouldBe("ValueB"));
 
-            now = now.Add(LruCache<string, string>.DefaultDuration);
+            now = now.Add(DefaultDuration);
             cache.Purge();
             this.ShouldSatisfyAllConditions(
                 () => cache.TryGet("KeyA", out valA).ShouldBeFalse(),
