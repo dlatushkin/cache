@@ -9,10 +9,6 @@
     {
         private DateTime expiresAt;
 
-        public Node<TKey, TItem> Next { get; set; }
-
-        public Node<TKey, TItem> Prev { get; set; }
-
         public TKey Key { get; set; }
 
         public TItem Value { get; set; }
