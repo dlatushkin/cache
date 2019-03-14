@@ -1,19 +1,20 @@
-namespace Dxw.Cache.Tests
+namespace Dxw.Cache.Tests.CacheTests
 {
     using System;
     using Dxw.Cache.Lru;
+    using Dxw.Cache.Tests.BaseTests;
     using Shouldly;
     using Xunit;
 
-    public class LruStringExpirationTests : BaseCacheTests<string, string>
+    public abstract class CacheStringExpirationTests : BaseCacheTests<string, string>
     {
         [Fact]
         public void DefaultDurationAddItemDefaultDuration_ItemExpires()
         {
             // Arrange
-            ICleanableCache<string, string> cache = new LruCache<string, string>(this.TimeSourceMock.Object);
+            var (timeMock, cache) = this.CreateICleanableCache();
             var now = default(DateTime);
-            this.TimeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
+            timeMock.Setup(s => s.GetNow()).Returns(() => now);
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -30,10 +31,9 @@ namespace Dxw.Cache.Tests
         {
             // Arrange
             var customDuration = TimeSpan.FromSeconds(60);
-            ICleanableCache<string, string> cache =
-                new LruCache<string, string>(this.TimeSourceMock.Object, customDuration);
+            var (timeMock, cache) = this.CreateICleanableCache(customDuration);
             var now = default(DateTime);
-            this.TimeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
+            timeMock.Setup(s => s.GetNow()).Returns(() => now);
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -55,10 +55,9 @@ namespace Dxw.Cache.Tests
         {
             // Arrange
             var customDuration = TimeSpan.FromSeconds(60);
-            ICleanableCache<string, string> cache =
-                new LruCache<string, string>(this.TimeSourceMock.Object);
+            var (timeMock, cache) = this.CreateICleanableCache();
             var now = default(DateTime);
-            this.TimeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
+            timeMock.Setup(s => s.GetNow()).Returns(() => now);
 
             // Act
             cache.Add("KeyA", "ValueA");

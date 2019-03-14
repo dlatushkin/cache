@@ -1,16 +1,17 @@
-namespace Dxw.Cache.Tests
+namespace Dxw.Cache.Tests.CacheTests
 {
     using Dxw.Cache.Lru;
+    using Dxw.Cache.Tests.BaseTests;
     using Shouldly;
     using Xunit;
 
-    public class LruStringCapacityTests : BaseCacheTests<string, string>
+    public abstract class CacheStringCapacityTests : BaseCacheTests<string, string>
     {
         [Fact]
         public void DefaultCapacityAddMoreItems_1stItemPushedOut()
         {
             // Arrange
-            ICleanableCache<string, string> cache = new LruCache<string, string>(this.TimeSourceMock.Object);
+            var (timeMock, cache) = this.CreateICleanableCache();
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -34,8 +35,7 @@ namespace Dxw.Cache.Tests
         public void CustomCapacityAddMoreItems_2FirstItemPushedOut()
         {
             // Arrange
-            ICleanableCache<string, string> cache =
-                new LruCache<string, string>(this.TimeSourceMock.Object, maxCapacity: 1);
+            var (timeMock, cache) = this.CreateICleanableCache(maxCapacity: 1);
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -58,8 +58,7 @@ namespace Dxw.Cache.Tests
         public void DefaultCapacityTouch1stAddMoreItems_2ndItemPushedOut()
         {
             // Arrange
-            ICleanableCache<string, string> cache =
-                new LruCache<string, string>(this.TimeSourceMock.Object);
+            var (timeMock, cache) = this.CreateICleanableCache();
 
             // Act
             cache.Add("KeyA", "ValueA");

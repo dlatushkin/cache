@@ -1,17 +1,19 @@
-namespace Dxw.Cache.Tests
+namespace Dxw.Cache.Tests.CacheTests
 {
     using System;
     using Dxw.Cache.Lru;
+    using Dxw.Cache.Tests.BaseTests;
+    using Dxw.Core.Times;
     using Shouldly;
     using Xunit;
 
-    public class LruStringBaseTests : BaseCacheTests<string, string>
+    public abstract class CacheStringBaseTests : BaseCacheTests<string, string>
     {
         [Fact]
         public void AddItem_GetSameItem()
         {
             // Arrange
-            IExpiringCache<string, string> cache = new LruCache<string, string>(this.TimeSourceMock.Object);
+            var (timeMock, cache) = this.CreateICleanableCache();
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -31,7 +33,7 @@ namespace Dxw.Cache.Tests
         public void RewriteItem_GetRewritten()
         {
             // Arrange
-            IExpiringCache<string, string> cache = new LruCache<string, string>(this.TimeSourceMock.Object);
+            var (timeMock, cache) = this.CreateICleanableCache();
 
             // Act
             cache.Add("KeyA", "ValueA");
