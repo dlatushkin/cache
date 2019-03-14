@@ -1,6 +1,6 @@
 ﻿namespace Dxw.Cache
 {
-    public interface IPurgeable
+    public interface ICleanable
     {
         void Purge();
     }

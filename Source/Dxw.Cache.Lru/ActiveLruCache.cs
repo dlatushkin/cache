@@ -8,13 +8,13 @@
     /// <summary>
     /// Cache with automatic purging by timer
     /// </summary>
-    public class ActiveLruCash<TKey, TItem> : LruCache<TKey, TItem>, IElapsedListener
+    public class ActiveLruCache<TKey, TItem> : LruCache<TKey, TItem>, IElapsedListener
     {
         private static readonly TimeSpan DefaultPurgeInterval = TimeSpan.FromSeconds(5);
 
         private readonly Timer timer = new Timer();
 
-        public ActiveLruCash(
+        public ActiveLruCache(
             ITimeSource timeSource,
             TimeSpan? purgeInterval = null,
             TimeSpan? defaultDuration = null,

@@ -15,7 +15,7 @@
             // Arrange
             var customDuration = TimeSpan.FromSeconds(1);
             IExpiringCache<string, string> cache =
-                new ActiveLruCash<string, string>(
+                new ActiveLruCache<string, string>(
                     new DateTimeSource(),
                     purgeInterval: TimeSpan.FromMilliseconds(500),
                     defaultDuration: customDuration);

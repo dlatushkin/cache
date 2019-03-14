@@ -7,7 +7,7 @@
     /// <summary>
     /// LRU implementation of Thread-safe cache with limited number of items where elements are automatically removed if not accessed.
     /// </summary>
-    public class LruCache<TKey, TItem> : IPurgeableCash<TKey, TItem>
+    public class LruCache<TKey, TItem> : ICleanableCache<TKey, TItem>
     {
         public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(30);
         public static readonly int DefaultMaxCapacity = 2;

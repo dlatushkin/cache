@@ -11,7 +11,7 @@ namespace Dxw.Cache.Tests
         public void DefaultDurationAddItemDefaultDuration_ItemExpires()
         {
             // Arrange
-            IPurgeableCash<string, string> cache = new LruCache<string, string>(this.TimeSourceMock.Object);
+            ICleanableCache<string, string> cache = new LruCache<string, string>(this.TimeSourceMock.Object);
             var now = default(DateTime);
             this.TimeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
 
@@ -30,7 +30,7 @@ namespace Dxw.Cache.Tests
         {
             // Arrange
             var customDuration = TimeSpan.FromSeconds(60);
-            IPurgeableCash<string, string> cache =
+            ICleanableCache<string, string> cache =
                 new LruCache<string, string>(this.TimeSourceMock.Object, customDuration);
             var now = default(DateTime);
             this.TimeSourceMock.Setup(s => s.GetNow()).Returns(() => now);
@@ -55,7 +55,7 @@ namespace Dxw.Cache.Tests
         {
             // Arrange
             var customDuration = TimeSpan.FromSeconds(60);
-            IPurgeableCash<string, string> cache =
+            ICleanableCache<string, string> cache =
                 new LruCache<string, string>(this.TimeSourceMock.Object);
             var now = default(DateTime);
             this.TimeSourceMock.Setup(s => s.GetNow()).Returns(() => now);

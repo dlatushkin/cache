@@ -10,7 +10,7 @@ namespace Dxw.Cache.Tests
         public void DefaultCapacityAddMoreItems_1stItemPushedOut()
         {
             // Arrange
-            IPurgeableCash<string, string> cache = new LruCache<string, string>(this.TimeSourceMock.Object);
+            ICleanableCache<string, string> cache = new LruCache<string, string>(this.TimeSourceMock.Object);
 
             // Act
             cache.Add("KeyA", "ValueA");
@@ -34,7 +34,7 @@ namespace Dxw.Cache.Tests
         public void CustomCapacityAddMoreItems_2FirstItemPushedOut()
         {
             // Arrange
-            IPurgeableCash<string, string> cache =
+            ICleanableCache<string, string> cache =
                 new LruCache<string, string>(this.TimeSourceMock.Object, maxCapacity: 1);
 
             // Act
@@ -58,7 +58,7 @@ namespace Dxw.Cache.Tests
         public void DefaultCapacityTouch1stAddMoreItems_2ndItemPushedOut()
         {
             // Arrange
-            IPurgeableCash<string, string> cache =
+            ICleanableCache<string, string> cache =
                 new LruCache<string, string>(this.TimeSourceMock.Object);
 
             // Act
