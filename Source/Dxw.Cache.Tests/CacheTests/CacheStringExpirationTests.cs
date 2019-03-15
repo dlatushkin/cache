@@ -17,9 +17,9 @@ namespace Dxw.Cache.Tests.CacheTests
 
             // Act
             cache.Add("KeyA", "ValueA");
-            cache.Purge();
+            cache.Cleanup();
             now = now.Add(DefaultDuration);
-            cache.Purge();
+            cache.Cleanup();
 
             // Assert
             cache.TryGet("KeyA", out var val).ShouldBeFalse();
@@ -39,13 +39,13 @@ namespace Dxw.Cache.Tests.CacheTests
 
             // Assert
             var val = default(string);
-            cache.Purge();
+            cache.Cleanup();
             cache.TryGet("KeyA", out val).ShouldBeTrue();
             now = now.Add(DefaultDuration);
-            cache.Purge();
+            cache.Cleanup();
             cache.TryGet("KeyA", out val).ShouldBeTrue();
             now = now.Add(customDuration);
-            cache.Purge();
+            cache.Cleanup();
             cache.TryGet("KeyA", out val).ShouldBeFalse();
         }
 
@@ -65,7 +65,7 @@ namespace Dxw.Cache.Tests.CacheTests
             // Assert
             var valA = default(string);
             var valB = default(string);
-            cache.Purge();
+            cache.Cleanup();
             this.ShouldSatisfyAllConditions(
                 () => cache.TryGet("KeyA", out valA).ShouldBeTrue(),
                 () => valA.ShouldBe("ValueA"),
@@ -73,14 +73,14 @@ namespace Dxw.Cache.Tests.CacheTests
                 () => valB.ShouldBe("ValueB"));
 
             now = now.Add(DefaultDuration);
-            cache.Purge();
+            cache.Cleanup();
             this.ShouldSatisfyAllConditions(
                 () => cache.TryGet("KeyA", out valA).ShouldBeFalse(),
                 () => cache.TryGet("KeyB", out valB).ShouldBeTrue(),
                 () => valB.ShouldBe("ValueB"));
 
             now = now.Add(customDuration);
-            cache.Purge();
+            cache.Cleanup();
             this.ShouldSatisfyAllConditions(
                 () => cache.TryGet("KeyA", out valA).ShouldBeFalse(),
                 () => cache.TryGet("KeyB", out valB).ShouldBeFalse());

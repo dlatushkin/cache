@@ -2,6 +2,6 @@
 {
     public interface ICleanable
     {
-        void Purge();
+        void Cleanup();
     }
 }

@@ -27,11 +27,19 @@
         {
             if (this.elapsedReference.TryGetTarget(out var listener))
             { // if target object is still alive call its event handler
-                listener.Elapsed();
+                try
+                {
+                    listener.Elapsed();
+                }
+                finally
+                {
+                    this.timer.Start();
+                }
             }
             else
             { // if not unsubscribe this wrapper
                 this.timer.Elapsed -= this.OnElapsed;
+                this.timer.Stop();
             }
         }
     }

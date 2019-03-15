@@ -86,7 +86,7 @@
         /// hence the performance under lock is maximal.
         /// May be used in manualy or by timer event.
         /// </summary>
-        public void Purge()
+        public void Cleanup()
         {
             lock (this.lockObj)
             {

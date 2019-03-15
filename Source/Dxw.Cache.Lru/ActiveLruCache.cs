@@ -1,6 +1,7 @@
 ﻿namespace Dxw.Cache.Lru
 {
     using System;
+    using System.Diagnostics;
     using System.Timers;
     using Dxw.Core.Timers;
     using Dxw.Core.Times;
@@ -23,12 +24,13 @@
         {
             this.timer = new Timer
             {
+                AutoReset = false,
                 Interval = (purgeInterval ?? DefaultPurgeInterval).TotalMilliseconds
             };
             var weakEventManager = WeakEventManager.Register(this.timer, this);
-            this.timer.Enabled = true;
+            this.timer.Start();
         }
 
-        public void Elapsed() => this.Purge();
+        public void Elapsed() => this.Cleanup();
     }
 }

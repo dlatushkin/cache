@@ -32,6 +32,10 @@
 
         public bool Full => this.linkedList.Count == this.maxCapacity;
 
+        /// <summary>
+        /// Adds new slot to the list if the ist is not full,
+        /// Replaces existing element otherwise.
+        /// </summary>
         public LinkedListNode<Slot<TKey, TItem>> AddOrUpdate(
             TKey key,
             TItem value,
@@ -63,6 +67,9 @@
             return node;
         }
 
+        /// <summary>
+        /// Moves the node to the head of the list.
+        /// </summary>
         public void MoveToHead(LinkedListNode<Slot<TKey, TItem>> node)
         {
             node.Value.Touch(this.timeSource.GetNow(), this.defaultDuration);
@@ -76,8 +83,15 @@
             this.linkedList.AddFirst(node);
         }
 
+        /// <summary>
+        /// Removes the node from the list.
+        /// </summary>
         public void Remove(LinkedListNode<Slot<TKey, TItem>> node) => this.linkedList.Remove(node);
 
+        /// <summary>
+        /// Removes all expired nodes and reports their keys to caller to allow additioanl cleanup.
+        /// It's used to remove expired keys from cache lookup dictionary.
+        /// </summary>
         public IEnumerable<TKey> RemoveExpired()
         {
             if (!this.Empty)
