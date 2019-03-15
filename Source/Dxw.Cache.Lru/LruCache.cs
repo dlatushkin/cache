@@ -12,15 +12,15 @@
         /// <summary>
         /// Lookup dictionary for fast search by key
         /// </summary>
-        private readonly Dictionary<TKey, LinkedListNode<Node<TKey, TItem>>> entries =
-            new Dictionary<TKey, LinkedListNode<Node<TKey, TItem>>>();
-
-        private readonly object lockObj = new object();
+        private readonly Dictionary<TKey, LinkedListNode<Slot<TKey, TItem>>> entries =
+            new Dictionary<TKey, LinkedListNode<Slot<TKey, TItem>>>();
 
         /// <summary>
         /// Linked list pointers (to order nodes by relevance)
         /// </summary>
-        private LruList<TKey, TItem> usedList;
+        private readonly LruList<TKey, TItem> usedList;
+
+        private readonly object lockObj = new object();
 
         public LruCache(
             ITimeSource timeSource,
@@ -47,16 +47,19 @@
         {
             item = default(TItem);
 
-            if (!this.entries.TryGetValue(key, out var node))
+            lock (this.lockObj)
             {
-                return false;
+                if (!this.entries.TryGetValue(key, out var node))
+                {
+                    return false;
+                }
+
+                this.usedList.MoveToHead(node);
+
+                item = node.Value.Value;
+
+                return true;
             }
-
-            this.usedList.MoveToHead(node);
-
-            item = node.Value.Value;
-
-            return true;
         }
 
         /// <summary>
@@ -64,14 +67,17 @@
         /// </summary>
         public bool Remove(TKey key)
         {
-            if (!this.entries.TryGetValue(key, out var node))
+            lock (this.lockObj)
             {
-                return false;
-            }
+                if (!this.entries.TryGetValue(key, out var node))
+                {
+                    return false;
+                }
 
-            this.usedList.Remove(node);
-            this.entries.Remove(node.Value.Key);
-            return true;
+                this.usedList.Remove(node);
+                this.entries.Remove(node.Value.Key);
+                return true;
+            }
         }
 
         /// <summary>
@@ -82,9 +88,12 @@
         /// </summary>
         public void Purge()
         {
-            foreach (var key in this.usedList.RemoveExpired())
+            lock (this.lockObj)
             {
-                this.entries.Remove(key);
+                foreach (var key in this.usedList.RemoveExpired())
+                {
+                    this.entries.Remove(key);
+                }
             }
         }
 
@@ -96,23 +105,26 @@
         /// </summary>
         private void AddOrUpdate(TKey key, TItem value, TimeSpan? duration = null)
         {
-            if (!this.entries.TryGetValue(key, out var node))
+            lock (this.lockObj)
             {
-                node = this.usedList.AddOrUpdate(key, value, duration, out var removedInfo);
-                if (removedInfo.removed)
+                if (!this.entries.TryGetValue(key, out var node))
                 {
-                    this.entries.Remove(removedInfo.key);
+                    node = this.usedList.AddOrUpdate(key, value, duration, out var removedInfo);
+                    if (removedInfo.removed)
+                    {
+                        this.entries.Remove(removedInfo.key);
+                    }
+
+                    this.entries.Add(key, node);
+                }
+                else
+                {
+                    node.Value.Value = value;
+                    node.Value.Duration = duration;
                 }
 
-                this.entries.Add(key, node);
+                this.usedList.MoveToHead(node);
             }
-            else
-            {
-                node.Value.Value = value;
-                node.Value.Duration = duration;
-            }
-
-            this.usedList.MoveToHead(node);
         }
     }
 }

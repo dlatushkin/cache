@@ -4,16 +4,19 @@
     using System.Collections.Generic;
     using Dxw.Core.Times;
 
+    /// <summary>
+    /// LRU list implementation
+    /// </summary>
     internal class LruList<TKey, TItem>
     {
         public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(30);
         public static readonly int DefaultMaxCapacity = 2;
 
         private readonly ITimeSource timeSource;
-        private readonly LinkedList<Node<TKey, TItem>> linkedList = new LinkedList<Node<TKey, TItem>>();
-
         private readonly TimeSpan defaultDuration;
         private readonly int maxCapacity;
+
+        private readonly LinkedList<Slot<TKey, TItem>> linkedList = new LinkedList<Slot<TKey, TItem>>();
 
         public LruList(
             ITimeSource timeSource,
@@ -29,13 +32,13 @@
 
         public bool Full => this.linkedList.Count == this.maxCapacity;
 
-        public LinkedListNode<Node<TKey, TItem>> AddOrUpdate(
+        public LinkedListNode<Slot<TKey, TItem>> AddOrUpdate(
             TKey key,
             TItem value,
             TimeSpan? duration,
             out (bool removed, TKey key) removedInfo)
         {
-            LinkedListNode<Node<TKey, TItem>> node;
+            LinkedListNode<Slot<TKey, TItem>> node;
 
             if (this.Full)
             {
@@ -48,7 +51,7 @@
             }
             else
             {
-                node = this.linkedList.AddFirst(new Node<TKey, TItem>
+                node = this.linkedList.AddFirst(new Slot<TKey, TItem>
                 {
                     Key = key,
                     Value = value,
@@ -60,7 +63,7 @@
             return node;
         }
 
-        public void MoveToHead(LinkedListNode<Node<TKey, TItem>> node)
+        public void MoveToHead(LinkedListNode<Slot<TKey, TItem>> node)
         {
             node.Value.Touch(this.timeSource.GetNow(), this.defaultDuration);
 
@@ -73,7 +76,7 @@
             this.linkedList.AddFirst(node);
         }
 
-        public void Remove(LinkedListNode<Node<TKey, TItem>> node) => this.linkedList.Remove(node);
+        public void Remove(LinkedListNode<Slot<TKey, TItem>> node) => this.linkedList.Remove(node);
 
         public IEnumerable<TKey> RemoveExpired()
         {
