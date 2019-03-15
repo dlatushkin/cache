@@ -42,3 +42,36 @@ See [Dxw.Cache.Tests](/Source/Dxw.Cache.Tests) project
 
 Stylecop is applied to all projects
 
+# Problems fixed
+
+## Jacob notes
+> The cache is only partially thread-safe:
+> There are some public operations that are not protected by a lock (i.e. Remove).
+> Some linked-list management is happening outside a lock – could potentially lead to corruption.
+
+All public operations protected by lock. It's choosen because all operations requires write operations and in this case
+Monitor is faster than ReaderWriterLockXXX
+
+> The background timer seems to be running forever and not get disposed, even though the elapsed-event is not set
+
+Timer is stopped right after "elapsed" unsubscribe operation
+
+> Error in TryAdd: Under certain race conditions the value is not updated.
+
+All public methods protected with lock as mentioned above
+
+> Minor issues:
+> a. With the added complexity of maintaining both a linked list and a dictionary, one could expect this to be isolated into a separate class
+
+[LruList class](/Source/Dxw.Cache.Lru/LruList.cs) is implemented to encapsulate least recent used nodes.
+> b. Spelling mistakes: “IPurgeableCash”, “ActiveLruCash”
+
+Corrected
+> c. Implementation details are public, i.e.: Node-class.
+
+Node class is renamed to [Slot](/Source/Dxw.Cache.Lru/Slot.cs) (to avoid name colision with native LinkedListNode class) and made internal
+
+## Denis findings and improvements
+- Unit tests are restructured and refactored to make possible testing of other cache implementations easier
+- During node update by key custom duration (if any) wasn't updated. Fixed.
+- Timer is made autoreset = false to avoid queuing events if cleanup tokes too long
